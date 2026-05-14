@@ -1,0 +1,26 @@
+﻿@import "tailwindcss";
+
+@theme {
+  --color-beat-yellow: #FFB600;
+  --color-beat-yellow-hover: #E5A300;
+  --color-beat-black: #131615;
+  --color-beat-gray: #E3E3E3;
+  --color-beat-white: #FFFFFF;
+  --font-display: "Kanit", "Poppins", sans-serif;
+  --font-body: "Poppins", system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-body);
+    font-weight: 300;
+  }
+  body {
+    background-color: var(--color-beat-white);
+    color: var(--color-beat-black);
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    font-weight: 700;
+  }
+}
