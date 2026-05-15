@@ -24,3 +24,19 @@
     font-weight: 700;
   }
 }
+
+/* FullCalendar: que la toolbar haga wrap en pantallas angostas */
+.fc .fc-toolbar.fc-header-toolbar {
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  row-gap: 0.75rem;
+}
+.fc .fc-toolbar-chunk {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  align-items: center;
+}
+.fc .fc-toolbar-title {
+  font-size: 1.1rem;
+}

@@ -1,37 +1,90 @@
-﻿"use client";
+"use client";
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import type { EntidadTipo } from "@/lib/archivos";
+import { getBrowserClient } from "@/lib/supabase/client";
+import { crearSignedUpload, registrarArchivoSubido, type EntidadTipo } from "@/lib/archivos";
+
+const MAX_RETRIES = 2;
+
+async function subirUno(
+  file: File,
+  entidadTipo: EntidadTipo,
+  entidadId: string,
+): Promise<string | null> {
+  let lastErr = "error desconocido";
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const sign = await crearSignedUpload(file.name, entidadTipo, entidadId);
+      if (sign.error || !sign.token || !sign.path) {
+        lastErr = sign.error || "no se pudo firmar";
+      } else {
+        const supabase = getBrowserClient();
+        const { error: upErr } = await supabase.storage
+          .from("archivos")
+          .uploadToSignedUrl(sign.path, sign.token, file, {
+            contentType: file.type || "application/octet-stream",
+          });
+        if (upErr) {
+          lastErr = upErr.message;
+        } else {
+          const reg = await registrarArchivoSubido({
+            nombre: file.name,
+            storage_path: sign.path,
+            mime_type: file.type || null,
+            size_bytes: file.size,
+            entidad_tipo: entidadTipo,
+            entidad_id: entidadId,
+          });
+          if (reg.error) {
+            lastErr = reg.error;
+          } else {
+            return null;
+          }
+        }
+      }
+    } catch (e: unknown) {
+      lastErr = e instanceof Error ? e.message : "error de red";
+    }
+    if (attempt < MAX_RETRIES) {
+      await new Promise((r) => setTimeout(r, 500 * (attempt + 1)));
+    }
+  }
+  return `${file.name}: ${lastErr}`;
+}
 
 export default function ArchivosUploader({
   entidadTipo,
   entidadId,
-  uploadAction,
 }: {
   entidadTipo: EntidadTipo;
   entidadId: string;
-  uploadAction: (formData: FormData) => Promise<{ error?: string } | void>;
 }) {
   const [isPending, startTransition] = useTransition();
   const [drag, setDrag] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const router = useRouter();
 
   const handleFiles = (files: FileList | null) => {
     if (!files || files.length === 0) return;
     setError(null);
+    const list = Array.from(files);
+    setProgress({ done: 0, total: list.length });
+
     startTransition(async () => {
-      for (const file of Array.from(files)) {
-        const fd = new FormData();
-        fd.set("file", file);
-        fd.set("entidad_tipo", entidadTipo);
-        fd.set("entidad_id", entidadId);
-        const res = await uploadAction(fd);
-        if (res && "error" in res && res.error) {
-          setError(res.error);
-          break;
-        }
+      const errors: string[] = [];
+      for (let idx = 0; idx < list.length; idx++) {
+        const err = await subirUno(list[idx], entidadTipo, entidadId);
+        if (err) errors.push(err);
+        setProgress({ done: idx + 1, total: list.length });
+      }
+      setProgress(null);
+      if (errors.length) {
+        setError(
+          errors.slice(0, 3).join("\n") +
+            (errors.length > 3 ? `\n(+${errors.length - 3} más)` : ""),
+        );
       }
       router.refresh();
     });
@@ -54,8 +107,8 @@ export default function ArchivosUploader({
           onChange={(e) => handleFiles(e.target.files)}
           disabled={isPending}
         />
-        {isPending ? (
-          <p className="text-sm text-gray-600">Subiendo...</p>
+        {isPending && progress ? (
+          <p className="text-sm text-gray-600">Subiendo {progress.done} de {progress.total}...</p>
         ) : (
           <>
             <p className="text-sm font-medium">Arrastrá archivos acá o hacé click</p>
@@ -63,7 +116,7 @@ export default function ArchivosUploader({
           </>
         )}
       </label>
-      {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+      {error && <pre className="mt-3 text-sm text-red-600 whitespace-pre-wrap font-sans">{error}</pre>}
     </div>
   );
 }

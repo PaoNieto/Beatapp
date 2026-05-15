@@ -51,5 +51,6 @@ BEAT/
 *.canvas
 ABRE_APP_AQU*.url
 
-# Migración Obsidian backup
+# Migraciï¿½n Obsidian backup
 _obsidian-vault/
+.vercel

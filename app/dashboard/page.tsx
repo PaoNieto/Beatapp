@@ -46,21 +46,21 @@ export default async function DashboardHome() {
 
   return (
     <div className="space-y-8 max-w-7xl">
-      <header className="flex items-center justify-between">
+      <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-4xl">Beat</h1>
           <p className="text-gray-600 mt-1">Panel general</p>
         </div>
         <Link
           href="/dashboard/proyectos/nuevo"
-          className="px-5 py-2.5 rounded-lg bg-[var(--color-beat-yellow)] text-[var(--color-beat-black)] font-semibold hover:bg-[var(--color-beat-yellow-hover)] transition"
+          className="shrink-0 px-5 py-2.5 rounded-lg bg-[var(--color-beat-yellow)] text-[var(--color-beat-black)] font-semibold hover:bg-[var(--color-beat-yellow-hover)] transition"
         >
           + Nuevo proyecto
         </Link>
       </header>
 
       <section>
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex flex-wrap items-baseline justify-between gap-2 mb-3">
           <h2 className="text-xl">Calendario</h2>
           <p className="text-xs text-gray-500">
             Click en un día vacío para crear un recordatorio · Click en un evento para abrirlo

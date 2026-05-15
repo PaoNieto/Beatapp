@@ -5,7 +5,7 @@ import { formatDate } from "@/lib/utils";
 import { listarArchivos } from "@/lib/archivos";
 import ArchivosUploader from "@/components/archivos-uploader";
 import ArchivoActions from "@/components/archivo-actions";
-import { subirArchivoProveedor, eliminarArchivoProveedor, urlArchivoProveedor, eliminarProveedor } from "../actions";
+import { eliminarArchivoProveedor, urlArchivoProveedor, eliminarProveedor } from "../actions";
 
 function formatSize(b: number | null) {
   if (!b) return "—";
@@ -89,7 +89,7 @@ export default async function ProveedorDetallePage({
 
       <section className="bg-white rounded-2xl shadow-sm p-6 mb-6">
         <h2 className="text-xl mb-4">Subir archivos</h2>
-        <ArchivosUploader entidadTipo="proveedor" entidadId={id} uploadAction={subirArchivoProveedor} />
+        <ArchivosUploader entidadTipo="proveedor" entidadId={id} />
       </section>
 
       <section className="bg-white rounded-2xl shadow-sm p-6">

@@ -5,7 +5,7 @@ import { formatDate } from "@/lib/utils";
 import { listarArchivos } from "@/lib/archivos";
 import ArchivosUploader from "@/components/archivos-uploader";
 import ArchivoActions from "@/components/archivo-actions";
-import { subirArchivoCotizacion, eliminarArchivoCotizacion, urlArchivo, eliminarBucketCotizacion } from "../actions";
+import { eliminarArchivoCotizacion, urlArchivo, eliminarBucketCotizacion } from "../actions";
 
 function formatSize(b: number | null) {
   if (!b) return "—";
@@ -57,7 +57,7 @@ export default async function BucketCotizacionPage({
 
       <section className="bg-white rounded-2xl shadow-sm p-6 mb-6">
         <h2 className="text-xl mb-4">Subir archivos</h2>
-        <ArchivosUploader entidadTipo="cotizacion" entidadId={id} uploadAction={subirArchivoCotizacion} />
+        <ArchivosUploader entidadTipo="cotizacion" entidadId={id} />
       </section>
 
       <section className="bg-white rounded-2xl shadow-sm p-6">
