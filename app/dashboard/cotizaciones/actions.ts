@@ -5,21 +5,33 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { uploadArchivo, eliminarArchivo, getArchivoUrl } from "@/lib/archivos";
 
+const TIPOS_VALIDOS = ["beat", "recibidos"] as const;
+
 export async function crearBucketCotizacion(formData: FormData): Promise<void> {
   const nombre = String(formData.get("nombre") || "").trim();
+  const tipoRaw = String(formData.get("tipo") || "").trim();
+  const tipo = (TIPOS_VALIDOS as readonly string[]).includes(tipoRaw) ? tipoRaw : null;
+
   if (!nombre) redirect("/dashboard/cotizaciones/nuevo?error=Falta+nombre");
+  if (!tipo) redirect("/dashboard/cotizaciones/nuevo?error=Eleg%C3%AD+un+tipo+(Beat+o+Recibidos)");
 
   const supabase = await createClient();
-  const { error, data } = await supabase.from("cotizaciones").insert({
+  const payloadBase: Record<string, any> = {
     nombre,
     descripcion: (formData.get("descripcion") as string) || null,
     cliente_id: (formData.get("cliente_id") as string) || null,
     proyecto_id: (formData.get("proyecto_id") as string) || null,
-  }).select("id").single();
+  };
 
-  if (error) redirect(`/dashboard/cotizaciones/nuevo?error=${encodeURIComponent(error.message)}`);
+  let resp = await supabase.from("cotizaciones").insert({ ...payloadBase, tipo }).select("id").single();
+  if (resp.error && /tipo/.test(resp.error.message)) {
+    // fallback si la migración 0005 no se corrió
+    resp = await supabase.from("cotizaciones").insert(payloadBase).select("id").single();
+  }
+  if (resp.error) redirect(`/dashboard/cotizaciones/nuevo?error=${encodeURIComponent(resp.error.message)}`);
+
   revalidatePath("/dashboard/cotizaciones");
-  redirect(`/dashboard/cotizaciones/${data!.id}`);
+  redirect(`/dashboard/cotizaciones/${resp.data!.id}`);
 }
 
 export async function eliminarBucketCotizacion(id: string): Promise<void> {
