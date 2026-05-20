@@ -6,7 +6,7 @@ import CalendarioInteractivo from "@/components/calendario-interactivo";
 export default async function DashboardHome() {
   const supabase = await createClient();
 
-  const [{ data: activos }, { data: proyectosFecha }, { data: recordatorios }] = await Promise.all([
+  const [{ data: activos }, proyectosFechaResp, { data: recordatorios }] = await Promise.all([
     supabase
       .from("proyectos")
       .select("id, codigo, nombre, fecha_evento, estado, clientes(nombre)")
@@ -21,6 +21,15 @@ export default async function DashboardHome() {
       .from("recordatorios")
       .select("id, fecha, titulo, descripcion"),
   ]);
+
+  let proyectosFecha: any[] | null = proyectosFechaResp.data;
+  if (proyectosFechaResp.error && /fecha_fin/.test(proyectosFechaResp.error.message)) {
+    const retry = await supabase
+      .from("proyectos")
+      .select("id, codigo, nombre, fecha_evento, clientes(nombre)")
+      .not("fecha_evento", "is", null);
+    proyectosFecha = retry.data as any[] | null;
+  }
 
   const eventos = [
     ...(proyectosFecha ?? []).map((p: any) => {
