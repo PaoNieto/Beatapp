@@ -15,7 +15,7 @@ export default async function DashboardHome() {
       .limit(20),
     supabase
       .from("proyectos")
-      .select("id, codigo, nombre, fecha_evento, clientes(nombre)")
+      .select("id, codigo, nombre, fecha_evento, fecha_fin, clientes(nombre)")
       .not("fecha_evento", "is", null),
     supabase
       .from("recordatorios")
@@ -23,16 +23,25 @@ export default async function DashboardHome() {
   ]);
 
   const eventos = [
-    ...(proyectosFecha ?? []).map((p: any) => ({
-      id: `proyecto-${p.id}`,
-      title: `${p.clientes?.nombre ? p.clientes.nombre + " — " : ""}${p.nombre}`,
-      start: p.fecha_evento as string,
-      url: `/dashboard/proyectos/${p.id}`,
-      backgroundColor: "#FFB600",
-      borderColor: "#FFB600",
-      textColor: "#131615",
-      extendedProps: { tipo: "proyecto" as const },
-    })),
+    ...(proyectosFecha ?? []).map((p: any) => {
+      const end = p.fecha_fin
+        ? new Date(new Date(p.fecha_fin as string).getTime() + 86400000)
+            .toISOString()
+            .slice(0, 10)
+        : undefined;
+      return {
+        id: `proyecto-${p.id}`,
+        title: `${p.clientes?.nombre ? p.clientes.nombre + " — " : ""}${p.nombre}`,
+        start: p.fecha_evento as string,
+        end,
+        allDay: true,
+        url: `/dashboard/proyectos/${p.id}`,
+        backgroundColor: "#FFB600",
+        borderColor: "#FFB600",
+        textColor: "#131615",
+        extendedProps: { tipo: "proyecto" as const },
+      };
+    }),
     ...(recordatorios ?? []).map((r: any) => ({
       id: r.id,
       title: r.titulo,
