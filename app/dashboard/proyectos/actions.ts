@@ -38,21 +38,30 @@ export async function crearProyecto(formData: FormData): Promise<void> {
   const supabase = await createClient();
   const codigo = await generarCodigo(supabase);
 
-  const { error, data } = await supabase
+  const payloadBase = {
+    codigo,
+    nombre,
+    cliente_id: cliente_id || null,
+    fecha_evento: fecha_inicio,
+    tipo_evento,
+    locacion,
+    descripcion,
+    equipo: equipo.length ? equipo : null,
+  };
+
+  let { error, data } = await supabase
     .from("proyectos")
-    .insert({
-      codigo,
-      nombre,
-      cliente_id: cliente_id || null,
-      fecha_evento: fecha_inicio,
-      fecha_fin,
-      tipo_evento,
-      locacion,
-      descripcion,
-      equipo: equipo.length ? equipo : null,
-    })
+    .insert({ ...payloadBase, fecha_fin })
     .select("id")
     .single();
+
+  if (error && /fecha_fin/.test(error.message)) {
+    ({ error, data } = await supabase
+      .from("proyectos")
+      .insert(payloadBase)
+      .select("id")
+      .single());
+  }
 
   if (error) redirect(`/dashboard/proyectos/nuevo?error=${encodeURIComponent(error.message)}`);
   revalidatePath("/dashboard");
