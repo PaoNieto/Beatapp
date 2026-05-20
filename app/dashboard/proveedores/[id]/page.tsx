@@ -5,7 +5,7 @@ import { formatDate } from "@/lib/utils";
 import { listarArchivos } from "@/lib/archivos";
 import ArchivosUploader from "@/components/archivos-uploader";
 import ArchivoActions from "@/components/archivo-actions";
-import { eliminarArchivoProveedor, urlArchivoProveedor, eliminarProveedor } from "../actions";
+import { eliminarArchivoProveedor, eliminarProveedor } from "../actions";
 
 function formatSize(b: number | null) {
   if (!b) return "—";
@@ -109,7 +109,6 @@ export default async function ProveedorDetallePage({
                 <ArchivoActions
                   archivoId={a.id}
                   storagePath={a.storage_path}
-                  getUrl={urlArchivoProveedor}
                   onDelete={deleteArch}
                 />
               </li>

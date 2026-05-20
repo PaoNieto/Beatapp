@@ -1,9 +1,8 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/utils";
 import { eliminarProyecto } from "../actions";
-import { getArchivoUrl } from "@/lib/archivos";
 
 function formatRango(inicio: string | null, fin: string | null): string {
   if (!inicio && !fin) return "—";
@@ -60,12 +59,6 @@ export default async function ProyectoDetallePage({
   const handleDelete = async () => {
     "use server";
     await eliminarProyecto(id);
-  };
-
-  const downloadArchivo = async (storagePath: string) => {
-    "use server";
-    const url = await getArchivoUrl(storagePath);
-    if (url) redirect(url);
   };
 
   return (
@@ -168,25 +161,22 @@ export default async function ProyectoDetallePage({
           </p>
         ) : (
           <ul className="divide-y">
-            {archivosVinc.map((a) => {
-              const download = downloadArchivo.bind(null, a.storage_path);
-              return (
-                <li key={a.id} className="py-3 flex items-center justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{a.nombre}</p>
-                    {a.bucket && <p className="text-xs text-gray-500">📁 {a.bucket}</p>}
-                  </div>
-                  <form action={download}>
-                    <button
-                      type="submit"
-                      className="text-xs px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-50"
-                    >
-                      Abrir
-                    </button>
-                  </form>
-                </li>
-              );
-            })}
+            {archivosVinc.map((a) => (
+              <li key={a.id} className="py-3 flex items-center justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium truncate">{a.nombre}</p>
+                  {a.bucket && <p className="text-xs text-gray-500">📁 {a.bucket}</p>}
+                </div>
+                <a
+                  href={`/api/archivo?path=${encodeURIComponent(a.storage_path)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-50"
+                >
+                  Abrir
+                </a>
+              </li>
+            ))}
           </ul>
         )}
       </section>
