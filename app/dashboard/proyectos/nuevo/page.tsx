@@ -3,7 +3,12 @@ import { createClient } from "@/lib/supabase/server";
 import { crearProyecto } from "../actions";
 import { EQUIPO_BEAT } from "@/lib/equipo";
 
-export default async function NuevoProyectoPage() {
+export default async function NuevoProyectoPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const { error } = await searchParams;
   const supabase = await createClient();
   const { data: clientes = [] } = await supabase
     .from("clientes").select("id, nombre").order("nombre");
@@ -19,6 +24,13 @@ export default async function NuevoProyectoPage() {
         <h1 className="text-3xl mt-2">Nuevo proyecto</h1>
         <p className="text-sm text-gray-500 mt-1">El código se asigna automáticamente.</p>
       </div>
+
+      {error && (
+        <div className="mb-4 p-4 rounded-lg border border-red-300 bg-red-50 text-red-800 text-sm">
+          <p className="font-semibold mb-1">No se pudo crear el proyecto</p>
+          <p className="font-mono text-xs whitespace-pre-wrap">{error}</p>
+        </div>
+      )}
 
       <form action={crearProyecto} className="bg-white rounded-2xl shadow-sm p-6 space-y-5">
         <div>
