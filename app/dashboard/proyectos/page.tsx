@@ -1,13 +1,24 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/utils";
 
 export default async function ProyectosPage() {
   const supabase = await createClient();
-  const { data: proyectos = [] } = await supabase
-    .from("proyectos")
-    .select("id, codigo, nombre, fecha_evento, estado, clientes(nombre)")
-    .order("fecha_evento", { ascending: false });
+
+  const NUEVA = "id, codigo, nombre, fecha_evento, operacion_inicio, estado, clientes(nombre)";
+  const LEGACY = "id, codigo, nombre, fecha_evento, estado, clientes(nombre)";
+
+  async function fetchProyectos(): Promise<any[]> {
+    for (const sel of [NUEVA, LEGACY]) {
+      const { data, error } = await supabase
+        .from("proyectos")
+        .select(sel)
+        .order("fecha_evento", { ascending: false });
+      if (!error) return data ?? [];
+    }
+    return [];
+  }
+  const proyectos = await fetchProyectos();
 
   return (
     <div className="max-w-7xl">
@@ -25,23 +36,23 @@ export default async function ProyectosPage() {
         <table className="w-full text-sm">
           <thead className="bg-[var(--color-beat-yellow)] text-[var(--color-beat-black)]">
             <tr>
-              <th className="text-left px-4 py-3 font-display">Código</th>
+              <th className="text-left px-4 py-3 font-display">Cot. aprobada</th>
               <th className="text-left px-4 py-3 font-display">Nombre</th>
               <th className="text-left px-4 py-3 font-display">Cliente</th>
-              <th className="text-left px-4 py-3 font-display">Fecha</th>
+              <th className="text-left px-4 py-3 font-display">Operación</th>
               <th className="text-left px-4 py-3 font-display">Estado</th>
             </tr>
           </thead>
           <tbody>
-            {(proyectos ?? []).length === 0 ? (
+            {proyectos.length === 0 ? (
               <tr><td colSpan={5} className="text-center py-10 text-gray-500">Aún no hay proyectos. <Link href="/dashboard/proyectos/nuevo" className="text-[var(--color-beat-yellow-hover)] hover:underline">Crear el primero</Link>.</td></tr>
             ) : (
-              (proyectos ?? []).map((p: any) => (
+              proyectos.map((p: any) => (
                 <tr key={p.id} className="border-t hover:bg-gray-50">
                   <td className="px-4 py-3 font-mono text-xs">{p.codigo}</td>
                   <td className="px-4 py-3"><Link href={`/dashboard/proyectos/${p.id}`} className="hover:text-[var(--color-beat-yellow-hover)]">{p.nombre}</Link></td>
                   <td className="px-4 py-3">{p.clientes?.nombre || "—"}</td>
-                  <td className="px-4 py-3">{formatDate(p.fecha_evento)}</td>
+                  <td className="px-4 py-3">{formatDate(p.operacion_inicio ?? p.fecha_evento)}</td>
                   <td className="px-4 py-3"><span className="px-2 py-0.5 rounded text-xs bg-[var(--color-beat-yellow)]/20">{p.estado}</span></td>
                 </tr>
               ))
