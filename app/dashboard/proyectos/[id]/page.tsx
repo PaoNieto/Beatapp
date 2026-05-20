@@ -1,7 +1,13 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
+
+function formatRangoFechas(inicio: string | null, fin: string | null): string {
+  if (!inicio && !fin) return "—";
+  if (inicio && fin && inicio !== fin) return `${formatDate(inicio)} → ${formatDate(fin)}`;
+  return formatDate(inicio || fin);
+}
 
 export default async function ProyectoDetallePage({
   params,
@@ -17,6 +23,8 @@ export default async function ProyectoDetallePage({
     .single();
 
   if (!p) notFound();
+
+  const equipo: string[] = Array.isArray(p.equipo) ? p.equipo : [];
 
   return (
     <div className="max-w-5xl">
@@ -37,30 +45,36 @@ export default async function ProyectoDetallePage({
 
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="bg-white p-4 rounded-xl shadow-sm">
-          <p className="text-xs text-gray-500">Fecha del evento</p>
-          <p className="text-lg">{formatDate(p.fecha_evento)}</p>
+          <p className="text-xs text-gray-500">Fechas</p>
+          <p className="text-lg">{formatRangoFechas(p.fecha_evento, p.fecha_fin)}</p>
         </div>
         <div className="bg-white p-4 rounded-xl shadow-sm">
           <p className="text-xs text-gray-500">Tipo</p>
           <p className="text-lg">{p.tipo_evento || "—"}</p>
         </div>
-        <div className="bg-white p-4 rounded-xl shadow-sm">
+        <div className="bg-white p-4 rounded-xl shadow-sm col-span-2">
           <p className="text-xs text-gray-500">Locación</p>
           <p className="text-lg">{p.locacion || "—"}</p>
         </div>
-        <div className="bg-white p-4 rounded-xl shadow-sm">
-          <p className="text-xs text-gray-500">Asistentes estimados</p>
-          <p className="text-lg">{p.asistentes_estimados ?? "—"}</p>
-        </div>
-        <div className="bg-white p-4 rounded-xl shadow-sm">
-          <p className="text-xs text-gray-500">Presupuesto cliente</p>
-          <p className="text-lg">{formatCurrency(p.presupuesto_cliente)}</p>
-        </div>
-        <div className="bg-white p-4 rounded-xl shadow-sm">
-          <p className="text-xs text-gray-500">Presupuesto real</p>
-          <p className="text-lg">{formatCurrency(p.presupuesto_real)}</p>
-        </div>
       </div>
+
+      <section className="bg-white rounded-2xl shadow-sm p-6 mb-6">
+        <h2 className="text-xl mb-3">Equipo Beat asignado</h2>
+        {equipo.length === 0 ? (
+          <p className="text-sm text-gray-500">Nadie asignado todavía.</p>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {equipo.map((n) => (
+              <span
+                key={n}
+                className="px-3 py-1 rounded-full text-sm bg-[var(--color-beat-yellow)]/20 border border-[var(--color-beat-yellow)]/40"
+              >
+                {n}
+              </span>
+            ))}
+          </div>
+        )}
+      </section>
 
       {p.descripcion && (
         <section className="bg-white rounded-2xl shadow-sm p-6 mb-6">

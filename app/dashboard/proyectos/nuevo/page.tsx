@@ -1,6 +1,7 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { crearProyecto } from "../actions";
+import { EQUIPO_BEAT } from "@/lib/equipo";
 
 export default async function NuevoProyectoPage() {
   const supabase = await createClient();
@@ -16,17 +17,19 @@ export default async function NuevoProyectoPage() {
           ← Volver a proyectos
         </Link>
         <h1 className="text-3xl mt-2">Nuevo proyecto</h1>
+        <p className="text-sm text-gray-500 mt-1">El código se asigna automáticamente.</p>
       </div>
 
       <form action={crearProyecto} className="bg-white rounded-2xl shadow-sm p-6 space-y-5">
+        <div>
+          <label className="block text-sm font-medium mb-1">Nombre del proyecto *</label>
+          <input
+            name="nombre" required placeholder="Aniversario BBVA 2026"
+            className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-[var(--color-beat-yellow)] outline-none"
+          />
+        </div>
+
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Código *</label>
-            <input
-              name="codigo" required placeholder="BEAT-2026-001"
-              className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-[var(--color-beat-yellow)] outline-none"
-            />
-          </div>
           <div>
             <label className="block text-sm font-medium mb-1">Cliente</label>
             <select
@@ -38,24 +41,6 @@ export default async function NuevoProyectoPage() {
                 <option key={c.id} value={c.id}>{c.nombre}</option>
               ))}
             </select>
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Nombre del proyecto *</label>
-          <input
-            name="nombre" required placeholder="Aniversario BBVA 2026"
-            className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-[var(--color-beat-yellow)] outline-none"
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Fecha del evento</label>
-            <input
-              name="fecha_evento" type="date"
-              className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-[var(--color-beat-yellow)] outline-none"
-            />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Tipo de evento</label>
@@ -69,6 +54,23 @@ export default async function NuevoProyectoPage() {
           </div>
         </div>
 
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Fecha desde</label>
+            <input
+              name="fecha_inicio" type="date"
+              className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-[var(--color-beat-yellow)] outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Fecha hasta</label>
+            <input
+              name="fecha_fin" type="date"
+              className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-[var(--color-beat-yellow)] outline-none"
+            />
+          </div>
+        </div>
+
         <div>
           <label className="block text-sm font-medium mb-1">Locación</label>
           <input
@@ -77,20 +79,23 @@ export default async function NuevoProyectoPage() {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Asistentes estimados</label>
-            <input
-              name="asistentes_estimados" type="number" min="0"
-              className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-[var(--color-beat-yellow)] outline-none"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Presupuesto cliente (PEN)</label>
-            <input
-              name="presupuesto_cliente" type="number" step="0.01" min="0"
-              className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-[var(--color-beat-yellow)] outline-none"
-            />
+        <div>
+          <label className="block text-sm font-medium mb-2">Equipo Beat asignado</label>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 rounded-lg border border-gray-300 bg-gray-50">
+            {EQUIPO_BEAT.map((nombre) => (
+              <label
+                key={nombre}
+                className="flex items-center gap-2 cursor-pointer text-sm hover:text-[var(--color-beat-yellow-hover)]"
+              >
+                <input
+                  type="checkbox"
+                  name="equipo"
+                  value={nombre}
+                  className="w-4 h-4 accent-[var(--color-beat-yellow)]"
+                />
+                <span>{nombre}</span>
+              </label>
+            ))}
           </div>
         </div>
 
