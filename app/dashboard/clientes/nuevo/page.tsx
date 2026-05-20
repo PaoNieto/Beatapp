@@ -1,13 +1,25 @@
 ﻿import Link from "next/link";
 import { crearCliente } from "../actions";
 
-export default function NuevoClientePage() {
+export default async function NuevoClientePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const { error } = await searchParams;
   const industrias = ["banca","retail","farma","tech","educacion","gobierno","consumo_masivo","otro"];
 
   return (
     <div className="max-w-3xl">
       <Link href="/dashboard/clientes" className="text-sm text-gray-600 hover:text-[var(--color-beat-yellow-hover)]">← Volver a clientes</Link>
       <h1 className="text-3xl mt-2 mb-6">Nuevo cliente</h1>
+
+      {error && (
+        <div className="mb-4 p-4 rounded-lg border border-red-300 bg-red-50 text-red-800 text-sm">
+          <p className="font-semibold mb-1">No se pudo crear el cliente</p>
+          <p className="font-mono text-xs whitespace-pre-wrap">{error}</p>
+        </div>
+      )}
 
       <form action={crearCliente} className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
         <div>
