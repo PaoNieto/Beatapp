@@ -1,13 +1,46 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/utils";
+import SortSelect from "@/components/sort-select";
 
-export default async function CotizacionesPage() {
+type SortKey = "recientes" | "antiguas" | "az" | "za";
+
+const SORT_OPTIONS = [
+  { value: "recientes", label: "Más recientes primero" },
+  { value: "antiguas", label: "Más antiguas primero" },
+  { value: "az", label: "Alfabético (A → Z)" },
+  { value: "za", label: "Alfabético (Z → A)" },
+];
+
+function applySort(query: any, sort: SortKey) {
+  switch (sort) {
+    case "antiguas":
+      return query.order("created_at", { ascending: true });
+    case "az":
+      return query.order("nombre", { ascending: true });
+    case "za":
+      return query.order("nombre", { ascending: false });
+    case "recientes":
+    default:
+      return query.order("created_at", { ascending: false });
+  }
+}
+
+export default async function CotizacionesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ sort?: string }>;
+}) {
+  const sp = await searchParams;
+  const sort: SortKey = (["recientes","antiguas","az","za"] as const).includes(sp.sort as SortKey)
+    ? (sp.sort as SortKey)
+    : "recientes";
+
   const supabase = await createClient();
-  const { data: buckets = [] } = await supabase
+  const base = supabase
     .from("cotizaciones")
-    .select("id, nombre, descripcion, created_at")
-    .order("created_at", { ascending: false });
+    .select("id, nombre, descripcion, created_at");
+  const { data: buckets = [] } = await applySort(base, sort);
 
   const ids = (buckets ?? []).map((b: any) => b.id);
   const counts = new Map<string, number>();
@@ -22,7 +55,7 @@ export default async function CotizacionesPage() {
 
   return (
     <div className="max-w-7xl">
-      <header className="flex items-center justify-between mb-6">
+      <header className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="text-3xl">Cotizaciones</h1>
           <p className="text-sm text-gray-600 mt-1">Carpetas personalizadas con archivos adentro</p>
@@ -32,6 +65,13 @@ export default async function CotizacionesPage() {
           + Nueva carpeta
         </Link>
       </header>
+
+      {(buckets ?? []).length > 0 && (
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <SortSelect options={SORT_OPTIONS} defaultValue="recientes" />
+          <span className="text-xs text-gray-500">{(buckets ?? []).length} carpeta{(buckets ?? []).length === 1 ? "" : "s"}</span>
+        </div>
+      )}
 
       {(buckets ?? []).length === 0 ? (
         <div className="bg-white rounded-2xl shadow-sm p-10 text-center text-gray-500">
